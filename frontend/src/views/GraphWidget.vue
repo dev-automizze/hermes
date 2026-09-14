@@ -17,12 +17,12 @@
         </div>
         <div class="flex flex-col w-full">
           <label class="text-[10px] font-bold uppercase text-gray-500 tracking-wider mb-1">Select Interface Graph</label>
-          <div class="relative flex items-center w-full max-w-[250px]">
+          <div class="relative flex items-center w-full max-w-[320px]">
             <select v-model="selectedGraphPort" @change="fetchGraphData" 
                     class="bg-transparent text-white font-semibold text-lg focus:outline-none cursor-pointer appearance-none w-full pr-6 truncate">
               <option v-if="!monitoredInterfaces || monitoredInterfaces.length === 0" value="null" disabled>No active interfaces</option>
               <option v-for="iface in monitoredInterfaces" :key="iface.id" :value="iface.id" class="bg-gray-800 text-white">
-                {{ iface.name }}
+                ({{ iface.hostName }}) {{ iface.name }}
               </option>
             </select>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute right-0 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,7 +153,6 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
-  hostId: { type: [Number, String], required: true },
   monitoredInterfaces: { type: Array, required: true },
   widgetId: { type: [Number, String], required: true },
   canDelete: { type: Boolean, default: true } 
@@ -175,14 +174,11 @@ const confirmDelete = () => {
 const savedPort = localStorage.getItem(`hermes_port_${props.widgetId}`)
 const selectedGraphPort = ref(savedPort ? parseInt(savedPort) : null)
 
-// Determine if expanded based on local storage
 const isExpanded = ref(localStorage.getItem(`hermes_expanded_${props.widgetId}`) === 'true')
 
-// The toggle function safely out of the way!
 const toggleSize = () => {
   isExpanded.value = !isExpanded.value
   localStorage.setItem(`hermes_expanded_${props.widgetId}`, isExpanded.value)
-  // Force Chart.js to recalculate dimensions smoothly
   setTimeout(() => window.dispatchEvent(new Event('resize')), 100)
 }
 
@@ -288,7 +284,7 @@ const clearGraph = () => {
 }
 
 const fetchGraphData = async () => {
-  if (!selectedGraphPort.value || !props.hostId) return
+  if (!selectedGraphPort.value) return
   if (selectedDuration.value === 'custom' && (!startDateTime.value || !endDateTime.value)) return
 
   try {
@@ -384,8 +380,6 @@ watch(() => props.monitoredInterfaces, (newInterfaces) => {
     clearGraph()
   }
 }, { immediate: true })
-
-watch(() => props.hostId, () => clearGraph())
 
 watch([startDateTime, endDateTime], () => {
   if (selectedDuration.value === 'custom') {

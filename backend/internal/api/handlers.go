@@ -79,7 +79,7 @@ func SetupRouter() *gin.Engine {
 
 	// Catch-all route: If the user refreshes on any frontend page, send them index.html
 	r.NoRoute(func(c *gin.Context) {
-    c.File("./dist/index.html")
+		c.File("./dist/index.html")
 	})
 
 	return r
@@ -102,7 +102,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		var userID int
 		var role, username string
-		
+
 		// Extract the user's role and username directly from their active session
 		err := db.DB.QueryRow(`
 			SELECT s.user_id, u.role, u.username FROM sessions s
@@ -219,11 +219,11 @@ func GetUsers(c *gin.Context) {
 			})
 		}
 	}
-	
+
 	if users == nil {
 		users = []map[string]interface{}{}
 	}
-	
+
 	c.JSON(http.StatusOK, users)
 }
 
@@ -388,7 +388,7 @@ func saveHost(c *gin.Context) {
 
 	// If ID > 0, it's an UPDATE. Otherwise, it's a NEW host.
 	if req.ID > 0 {
-		_, err := db.DB.Exec("UPDATE hosts SET name=?, ip=?, community=?, enabled=? WHERE id=?", 
+		_, err := db.DB.Exec("UPDATE hosts SET name=?, ip=?, community=?, enabled=? WHERE id=?",
 			req.Name, req.IP, req.Community, enabledInt, req.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update host configuration"})
@@ -396,7 +396,7 @@ func saveHost(c *gin.Context) {
 		}
 		hostID = int64(req.ID)
 	} else {
-		result, err := db.DB.Exec("INSERT INTO hosts (name, ip, community, enabled) VALUES (?, ?, ?, ?)", 
+		result, err := db.DB.Exec("INSERT INTO hosts (name, ip, community, enabled) VALUES (?, ?, ?, ?)",
 			req.Name, req.IP, req.Community, enabledInt)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new host configuration"})
@@ -428,7 +428,7 @@ func DeleteHost(c *gin.Context) {
 	}
 
 	id := c.Param("id")
-    
+
 	// 1. Delete the host from the hosts table
 	_, err := db.DB.Exec("DELETE FROM hosts WHERE id = ?", id)
 	if err != nil {
@@ -620,13 +620,27 @@ func getMetrics(c *gin.Context) {
 }
 
 func discoverAndSaveInterfaces(hostID int64, ip, community string) error {
+	isV3 := strings.HasPrefix(community, "v3:")
+	authName := strings.TrimPrefix(community, "v3:")
+
 	agent := &gosnmp.GoSNMP{
-		Target:    ip,
-		Port:      161,
-		Community: community,
-		Version:   gosnmp.Version2c,
-		Timeout:   time.Duration(5) * time.Second,
-		Retries:   3,
+		Target:         ip,
+		Port:           161,
+		Timeout:        time.Duration(10) * time.Second,
+		Retries:        3,
+		MaxRepetitions: 10,
+	}
+
+	if isV3 {
+		agent.Version = gosnmp.Version3
+		agent.MsgFlags = gosnmp.NoAuthNoPriv
+		agent.SecurityModel = gosnmp.UserSecurityModel
+		agent.SecurityParameters = &gosnmp.UsmSecurityParameters{
+			UserName: authName,
+		}
+	} else {
+		agent.Version = gosnmp.Version2c
+		agent.Community = authName
 	}
 
 	err := agent.Connect()
@@ -721,7 +735,7 @@ func GetDatabaseStats(c *gin.Context) {
 	var retentionDays string
 	err = db.DB.QueryRow("SELECT value FROM settings WHERE key = 'data_retention_days'").Scan(&retentionDays)
 	if err != nil || retentionDays == "" {
-		retentionDays = "7" 
+		retentionDays = "7"
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -749,7 +763,7 @@ func SaveDatabaseSettings(c *gin.Context) {
 
 	stmt := `INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value;`
 	_, err := db.DB.Exec(stmt, "data_retention_days", fmt.Sprintf("%d", req.RetentionDays))
-	
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save retention policy"})
 		return

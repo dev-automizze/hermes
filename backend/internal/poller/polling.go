@@ -106,13 +106,26 @@ func executePollCycle() {
 func pollDeviceBandwidth(t MonitoredTarget, wg *sync.WaitGroup) {
 	defer wg.Done() // Ensure the waitgroup marks this as done!
 
+	isV3 := strings.HasPrefix(t.Community, "v3:")
+	authName := strings.TrimPrefix(t.Community, "v3:")
+
 	agent := &gosnmp.GoSNMP{
-		Target:    t.IP,
-		Port:      161,
-		Community: t.Community,
-		Version:   gosnmp.Version2c,
-		Timeout:   time.Duration(3) * time.Second,
-		Retries:   1,
+		Target:  t.IP,
+		Port:    161,
+		Timeout: time.Duration(10) * time.Second,
+		Retries: 3,
+	}
+
+	if isV3 {
+		agent.Version = gosnmp.Version3
+		agent.MsgFlags = gosnmp.NoAuthNoPriv
+		agent.SecurityModel = gosnmp.UserSecurityModel
+		agent.SecurityParameters = &gosnmp.UsmSecurityParameters{
+			UserName: authName,
+		}
+	} else {
+		agent.Version = gosnmp.Version2c
+		agent.Community = authName
 	}
 
 	if err := agent.Connect(); err != nil {
