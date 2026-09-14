@@ -1,0 +1,12 @@
+
+services:
+  hermes-monitor:
+    build: .
+    container_name: hermes-network-monitor
+    ports:
+      - "8014:8014"
+    volumes:
+      # This binds a local directory named 'data' on your real machine 
+      # to the container's safe directory, making your DB immortal!
+      - ./data:/app/data
+    restart: unless-stopped

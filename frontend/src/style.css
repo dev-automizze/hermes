@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-hermes-bg: #06202B;
+  --color-hermes-text: #EEEEEE;
+  --color-hermes-accent: #FFAE6E;
+}
+
+/* Set the default background and text colors for the whole app */
+body {
+  background-color: var(--color-hermes-bg);
+  color: var(--color-hermes-text);
+}

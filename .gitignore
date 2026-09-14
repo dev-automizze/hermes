@@ -1,0 +1,14 @@
+# Node & Vue
+node_modules/
+frontend/dist/
+
+# Go & Builds
+hermes-app
+/backend/bin/
+
+# Database & Environment
+data/
+*.sqlite
+*.sqlite3
+*.db
+.env
