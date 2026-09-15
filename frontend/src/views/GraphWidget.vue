@@ -240,7 +240,8 @@ const chartOptions = computed(() => ({
     id: staticChartId,
     background: 'transparent',
     toolbar: { show: false },
-    animations: { enabled: true, easing: 'linear', dynamicAnimation: { speed: 1000 } }
+    animations: { enabled: true, easing: 'linear', dynamicAnimation: { speed: 1000 } },
+    zoom: { enabled: false }
   },
   colors: ['#FF5FCF', '#FFA239'],
   theme: { mode: 'dark' },

@@ -1,0 +1,3 @@
+npm run build && rm -rf ../backend/dist && cp -r dist ../backend/
+
+go run cmd/hermes/main.go
