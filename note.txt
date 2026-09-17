@@ -5,8 +5,6 @@ npm run build && rm -rf ../backend/dist && cp -r dist ../backend/
 go run cmd/hermes/main.go
 
 
-
-
 #Commit to Github command
 # 1. Check which files have been modified
 git status
@@ -15,7 +13,7 @@ git status
 git add .
 
 # 3. Commit the changes with a descriptive message
-git commit -m "feat: persist user dashboard layout to database per user account"
+git commit -m "Just note.txt"
 
 # 4. Push to your GitHub repository (assuming your branch is 'main')
 git push origin main

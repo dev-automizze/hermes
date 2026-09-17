@@ -1,10 +1,17 @@
 # Node & Vue
 node_modules/
 frontend/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Go & Builds
 hermes-app
+hermes
 /backend/bin/
+*.exe
+*.test
+*.out
 
 # Database & Environment
 data/
@@ -12,3 +19,15 @@ data/
 *.sqlite3
 *.db
 .env
+.env.local
+docker-compose.override.yml
+
+# Logs
+*.log
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
