@@ -13,35 +13,33 @@ HERMES is a lightweight, self-hosted network bandwidth monitoring tool built wit
 *   **Docker Ready:** Easy deployment using Docker and Docker Compose.
 *   **Data Retention:** Configurable database purging to keep your SQLite file small.
 
-## 🚀 Quick Start (Docker Compose)
 
-The easiest way to run HERMES is using Docker Compose.
+🚀 Quick Start (Using GitHub Packages / GHCR)
+If you prefer to pull the pre-built image directly from GitHub Packages, you can do so without downloading the source code.
 
-1. Create a folder for your HERMES installation and create a `docker-compose.yml` file with the following content:
-
-```yaml
-services:
-  hermes-monitor:
-    image: <your-dockerhub-username>/<your-repo-name>:latest
-    container_name: hermes-network-monitor
-    ports:
-      - "8014:8014"
-    volumes:
-      # This binds a local directory named 'data' on your real machine 
-      # to the container's safe directory, making your DB immortal!
-      - ./data:/app/data
-    restart: unless-stopped
-```
-2. Start container
+Open your terminal and run:
 
 ```bash
-docker compose up -d
-```
+mkdir hermes
+cd hermes
 
-4. Access the dashboard at http://<your-server-ip>:8014.
-Default Login
-User: Admin
-Password: Hermes
+# Pull the latest image from GHCR
+docker pull ghcr.io/dev-automizze/hermes:latest
+
+# Run the container with the correct port and volume mapping
+docker run -d \
+  --name hermes-network-monitor \
+  -p 8014:8014 \
+  -v ./data:/app/data \
+  --restart unless-stopped \
+  ghcr.io/dev-automizze/hermes:latest
+```
+Once running, access the dashboard at http://<your-server-ip>:8014
+User: admin
+Pass: Hermes
+
+
+
 
 ⚙️ Configuration Guide
 Adding Hosts and Interfaces
