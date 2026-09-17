@@ -14,11 +14,11 @@ HERMES is a lightweight, self-hosted network bandwidth monitoring tool built wit
 *   **Data Retention:** Configurable database purging to keep your SQLite file small.
 
 
+
 🚀 Quick Start (Using GitHub Packages / GHCR)
 If you prefer to pull the pre-built image directly from GitHub Packages, you can do so without downloading the source code.
 
 Open your terminal and run:
-
 ```bash
 mkdir hermes
 cd hermes
@@ -34,11 +34,38 @@ docker run -d \
   --restart unless-stopped \
   ghcr.io/dev-automizze/hermes:latest
 ```
-Once running, access the dashboard at http://<your-server-ip>:8014
+
+Once running, access the dashboard at http://<your-server-ip>:8014.
+
+
+
+Alternative way with docker compose
+
+🚀Docker compose
+```yaml
+services:
+  hermes-monitor:
+    # Use the pre-built image from GHCR
+    image: ghcr.io/dev-automizze/hermes:latest
+    container_name: hermes-network-monitor
+    ports:
+      - "8014:8014"
+    volumes:
+      # This binds a local directory named 'data' on your real machine 
+      # to the container's safe directory, making your DB immortal!
+      - ./data:/app/data
+    restart: unless-stopped
+```
+
+```bash
+docker compose up -d
+```
+
+#Login
+
 User: admin
+
 Pass: Hermes
-
-
 
 
 ⚙️ Configuration Guide
