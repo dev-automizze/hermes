@@ -1,3 +1,30 @@
+#buid npm move copy dist into backend
 npm run build && rm -rf ../backend/dist && cp -r dist ../backend/
 
+#run main.go
 go run cmd/hermes/main.go
+
+
+
+
+#Commit to Github command
+# 1. Check which files have been modified
+git status
+
+# 2. Stage all your changes (the modified Go files, Vue files, etc.)
+git add .
+
+# 3. Commit the changes with a descriptive message
+git commit -m "feat: persist user dashboard layout to database per user account"
+
+# 4. Push to your GitHub repository (assuming your branch is 'main')
+git push origin main
+
+
+#Push to docker-hub 
+# Build and tag both v1.2.2 and latest
+docker build -t chamroeunlikefree/hermes:v1.2.2 -t chamroeunlikefree/hermes:latest .
+
+# Push both tags to Docker Hub
+docker push chamroeunlikefree/hermes:v1.2.2
+docker push chamroeunlikefree/hermes:latest
