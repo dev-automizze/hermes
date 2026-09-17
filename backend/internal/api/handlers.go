@@ -69,6 +69,11 @@ func SetupRouter() *gin.Engine {
 		protected.POST("/users", CreateUser)
 		protected.PUT("/users/:id", UpdateUser)
 		protected.DELETE("/users/:id", DeleteUser)
+
+		// NEW: Dashboard Configuration Routes
+		protected.GET("/dashboard", GetDashboardConfig)
+		protected.PUT("/dashboard", SaveDashboardConfig)
+
 	}
 
 	// -------------------------------------------------------------
@@ -805,4 +810,53 @@ func PurgeMetrics(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Database history cleaned and optimized successfully"})
+}
+
+// ==============================================================================
+// DASHBOARD CONFIGURATION HANDLERS
+// ==============================================================================
+
+func GetDashboardConfig(c *gin.Context) {
+	userID := c.GetInt("userID")
+	var configJSON string
+
+	err := db.DB.QueryRow("SELECT config_json FROM user_dashboards WHERE user_id = ?", userID).Scan(&configJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// User has no saved config yet, return an empty response
+			c.JSON(http.StatusOK, gin.H{"config": ""})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch dashboard config"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"config": configJSON})
+}
+
+func SaveDashboardConfig(c *gin.Context) {
+	userID := c.GetInt("userID")
+
+	var req struct {
+		Config string `json:"config" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+		return
+	}
+
+	// Upsert: Insert if new, Update if exists
+	stmt := `
+		INSERT INTO user_dashboards (user_id, config_json) 
+		VALUES (?, ?) 
+		ON CONFLICT(user_id) DO UPDATE SET config_json=excluded.config_json`
+
+	_, err := db.DB.Exec(stmt, userID, req.Config)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save dashboard config"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Dashboard config saved successfully"})
 }

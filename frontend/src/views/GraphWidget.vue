@@ -155,12 +155,13 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 const props = defineProps({
   monitoredInterfaces: { type: Array, required: true },
   widgetId: { type: [Number, String], required: true },
+  widgetConfig: { type: Object, default: () => ({}) }, // NEW: Receive config from parent
   canDelete: { type: Boolean, default: true } 
 })
 
-const emit = defineEmits(['remove'])
+const emit = defineEmits(['remove', 'update-widget-config'])
 
-// --- NEW DROPDOWN LOGIC ---
+// --- DROPDOWN LOGIC ---
 const showDeleteDropdown = ref(false)
 
 const confirmDelete = () => {
@@ -169,24 +170,29 @@ const confirmDelete = () => {
 }
 
 // ==========================================
-// TRACKING AND UI STATE
+// TRACKING AND UI STATE (Initialized from Props)
 // ==========================================
-const savedPort = localStorage.getItem(`hermes_port_${props.widgetId}`)
-const selectedGraphPort = ref(savedPort ? parseInt(savedPort) : null)
+const selectedGraphPort = ref(props.widgetConfig.portId || null)
+const selectedDuration = ref(props.widgetConfig.duration || '1h')
+const isExpanded = ref(props.widgetConfig.isExpanded || false)
+const startDateTime = ref(props.widgetConfig.startDateTime || '')
+const endDateTime = ref(props.widgetConfig.endDateTime || '')
 
-const isExpanded = ref(localStorage.getItem(`hermes_expanded_${props.widgetId}`) === 'true')
+// Emit changes to the parent whenever local state changes
+watch([selectedGraphPort, selectedDuration, isExpanded, startDateTime, endDateTime], () => {
+  emit('update-widget-config', {
+    portId: selectedGraphPort.value,
+    duration: selectedDuration.value,
+    isExpanded: isExpanded.value,
+    startDateTime: startDateTime.value,
+    endDateTime: endDateTime.value
+  })
+})
 
 const toggleSize = () => {
   isExpanded.value = !isExpanded.value
-  localStorage.setItem(`hermes_expanded_${props.widgetId}`, isExpanded.value)
   setTimeout(() => window.dispatchEvent(new Event('resize')), 100)
 }
-
-const savedDuration = localStorage.getItem(`hermes_duration_${props.widgetId}`)
-const selectedDuration = ref(savedDuration || '1h')
-
-const startDateTime = ref('')
-const endDateTime = ref('')
 
 const timestamps = ref([])
 const downloadData = ref([])
@@ -276,7 +282,7 @@ const chartSeries = computed(() => [
 ])
 
 // ==========================================
-// 1. FUNCTIONS DECLARED FIRST
+// DATA FETCHING
 // ==========================================
 const clearGraph = () => {
   timestamps.value = []
@@ -301,9 +307,7 @@ const fetchGraphData = async () => {
 
     const token = localStorage.getItem('hermes_token')
     const response = await fetch(targetUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
     
     const data = await response.json() 
@@ -354,15 +358,9 @@ const pollData = () => {
 }
 
 // ==========================================
-// 2. WATCHERS DECLARED SECOND
+// WATCHERS
 // ==========================================
-
-watch(selectedGraphPort, (newVal) => {
-  if (newVal) localStorage.setItem(`hermes_port_${props.widgetId}`, newVal)
-})
-
 watch(selectedDuration, (newVal) => {
-  if (newVal) localStorage.setItem(`hermes_duration_${props.widgetId}`, newVal)
   if (newVal !== 'custom') {
     clearGraph()
     fetchGraphData()
@@ -372,6 +370,7 @@ watch(selectedDuration, (newVal) => {
 watch(() => props.monitoredInterfaces, (newInterfaces) => {
   const safeInterfaces = newInterfaces || []
   if (safeInterfaces.length > 0) {
+    // If the saved port doesn't exist in the new list, default to the first one
     if (!selectedGraphPort.value || !safeInterfaces.find(i => i.id === selectedGraphPort.value)) {
       selectedGraphPort.value = safeInterfaces[0].id
     }
@@ -390,7 +389,7 @@ watch([startDateTime, endDateTime], () => {
 })
 
 // ==========================================
-// 3. LIFECYCLE DECLARED LAST
+// LIFECYCLE
 // ==========================================
 onMounted(() => {
   pollingInterval = setInterval(pollData, 60000) 

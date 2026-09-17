@@ -19,7 +19,7 @@ type TelegramSettings struct {
 // 1. Fetch Current Settings
 func GetTelegramSettings(c *gin.Context) {
 	var settings TelegramSettings
-	
+
 	// Helper function to get a value from the DB safely
 	getValue := func(key string) string {
 		var val string
@@ -69,7 +69,7 @@ func TestTelegramConnection(c *gin.Context) {
 		return
 	}
 
-	err := sendTelegramMessage(req.BotToken, req.ChatID, "✅ *Hermes Network Monitor*\nTest connection successful! Your notification engine is online.")
+	err := sendTelegramMessage(req.BotToken, req.ChatID, "✅ *Hermes Bandwidth Monitor*\nTest connection successful! Your notification engine is online.")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send message: " + err.Error()})
 		return
@@ -81,13 +81,13 @@ func TestTelegramConnection(c *gin.Context) {
 // The actual HTTP request to Telegram's API
 func sendTelegramMessage(token, chatID, text string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
-	
+
 	payload := map[string]string{
 		"chat_id":    chatID,
 		"text":       text,
 		"parse_mode": "Markdown",
 	}
-	
+
 	body, _ := json.Marshal(payload)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
 	if err != nil {

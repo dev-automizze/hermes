@@ -84,6 +84,14 @@ func createTables() {
 		FOREIGN KEY(host_id) REFERENCES hosts(id) ON DELETE CASCADE
 	);`
 
+	// 6. User Dashboards Table (NEW: Stores per-user widget layouts)
+	userDashboardsTable := `
+	CREATE TABLE IF NOT EXISTS user_dashboards (
+		user_id INTEGER PRIMARY KEY,
+		config_json TEXT,
+		FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+	);`
+
 	// Execute tables creation
 	_, err := DB.Exec(hostsTable)
 	if err != nil {
@@ -109,6 +117,12 @@ func createTables() {
 	_, err = DB.Exec(alertRulesTable)
 	if err != nil {
 		log.Fatalf("Error creating alert_rules table: %v", err)
+	}
+
+	// Execute table creation
+	_, err = DB.Exec(userDashboardsTable)
+	if err != nil {
+		log.Fatalf("Error creating user_dashboards table: %v", err)
 	}
 
 	log.Println("Database initialized successfully with all tables.")
