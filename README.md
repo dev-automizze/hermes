@@ -31,3 +31,71 @@ services:
       # to the container's safe directory, making your DB immortal!
       - ./data:/app/data
     restart: unless-stopped
+```
+2. Start container
+
+```bash
+docker compose up -d
+```
+
+4. Access the dashboard at http://<your-server-ip>:8014.
+Default Login
+User: Admin
+Password: Hermes
+
+⚙️ Configuration Guide
+Adding Hosts and Interfaces
+Navigate to the Settings tab.
+
+Add a new Host with its IP address and SNMP Community String.
+
+Once added, the system will automatically discover its interfaces.
+
+Enable "Monitoring" on the specific interfaces you want to track.
+
+SNMP v3 Support Trick
+HERMES uses a custom prefix to detect SNMP v3 authentication.
+
+For SNMP v2c or v1, simply enter your community string (e.g., public).
+
+For SNMP v3, enter v3: followed by your SNMP v3 Username in the Community String box.
+
+Example: v3:myv3username
+
+(Note: This implementation currently uses NoAuthNoPriv security level).
+
+Telegram Alerts
+Go to Settings -> Telegram.
+
+Enter your Bot Token and Chat ID.
+
+Go to Settings -> Alerts to create rules based on Host, Port, Direction (Upload/Download), and Thresholds (Mbps).
+
+
+🛠️ Local Development
+If you want to build the project from source:
+
+Backend (Go):
+```bash
+cd backend
+go mod download
+go run cmd/hermes/main.go
+```
+Frontend (Vue 3 + Vite):
+```bash
+cd frontend
+npm install
+npm run dev
+```
+📦 Built With
+*Go - Backend logic, SNMP polling, and API.
+*Vue.js 3 - Frontend framework.
+*SQLite - Embedded database.
+
+No fking web coding here just Gemini and & Deepseek.
+
+
+
+
+
+
